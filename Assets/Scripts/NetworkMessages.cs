@@ -8,7 +8,8 @@ namespace NetworkMessages
         PLAYER_UPDATE,
         SERVER_UPDATE,
         HANDSHAKE,
-        PLAYER_INPUT
+        PLAYER_INPUT,
+        PLAYER_INTO
     }
 
     [System.Serializable]
@@ -34,21 +35,39 @@ namespace NetworkMessages
         }
     };
 
-    public class PlayerInputMsg:NetworkHeader{
+    public class PlayerInputMsg : NetworkHeader
+    {
         public Input myInput;
-        public PlayerInputMsg(){
+        public PlayerInputMsg()
+        {
             cmd = Commands.PLAYER_INPUT;
             myInput = new Input();
         }
     }
+
     [System.Serializable]
-    public class  ServerUpdateMsg:NetworkHeader{
+    public class ServerUpdateMsg : NetworkHeader
+    {
         public List<NetworkObjects.NetworkPlayer> players;
-        public ServerUpdateMsg(){      // Constructor
+        public ServerUpdateMsg()
+        {      // Constructor
             cmd = Commands.SERVER_UPDATE;
             players = new List<NetworkObjects.NetworkPlayer>();
         }
     }
+
+    [System.Serializable]
+    public class PlayerIntoMsg : NetworkHeader
+    {
+        public Vector3 Point;
+        public string UnityID;
+        public PlayerIntoMsg()
+        {      // Constructor
+            cmd = Commands.PLAYER_INTO;
+
+        }
+    }
+
 } 
 
 namespace NetworkObjects
@@ -61,6 +80,7 @@ namespace NetworkObjects
     public class NetworkPlayer : NetworkObject{
         public Color cubeColor;
         public Vector3 cubPos;
+
 
         public NetworkPlayer(){
             cubeColor = new Color();

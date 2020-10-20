@@ -5,15 +5,18 @@ using Unity.Networking.Transport;
 using NetworkMessages;
 using System;
 using System.Text;
+using System.Collections.Generic;
 
 public class NetworkServer : MonoBehaviour
 {
     public NetworkDriver m_Driver;
     public ushort serverPort;
     private NativeList<NetworkConnection> m_Connections;
+    public List<PlayerIntoMsg> playerMsg;
 
     void Start ()
     {
+        playerMsg = new List<PlayerIntoMsg>();
         m_Driver = NetworkDriver.Create();
         var endpoint = NetworkEndPoint.AnyIpv4;
         endpoint.Port = serverPort;
@@ -38,9 +41,12 @@ public class NetworkServer : MonoBehaviour
     }
 
     void OnConnect(NetworkConnection c){
+        foreach (PlayerIntoMsg Np in playerMsg)
+        {
+            SendToClient(JsonUtility.ToJson(Np), c);
+        }
         m_Connections.Add(c);
         Debug.Log("Accepted a connection");
-
         //// Example to send a handshake message:
         // HandshakeMsg m = new HandshakeMsg();
         // m.player.id = c.InternalId.ToString();
@@ -66,6 +72,16 @@ public class NetworkServer : MonoBehaviour
             ServerUpdateMsg suMsg = JsonUtility.FromJson<ServerUpdateMsg>(recMsg);
             Debug.Log("Server update message received!");
             break;
+            case Commands.PLAYER_INTO:
+            PlayerIntoMsg PMsg = JsonUtility.FromJson<PlayerIntoMsg>(recMsg);
+            Debug.Log("Player into message received!");
+            playerMsg.Add(PMsg);
+            foreach(NetworkConnection P in m_Connections)
+            {
+                SendToClient(JsonUtility.ToJson(PMsg), P);
+            }
+            break;
+
             default:
             Debug.Log("SERVER ERROR: Unrecognized message received!");
             break;

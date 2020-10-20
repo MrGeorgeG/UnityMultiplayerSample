@@ -12,14 +12,18 @@ public class NetworkClient : MonoBehaviour
     public NetworkConnection m_Connection;
     public string serverIP;
     public ushort serverPort;
-
+    public GameObject playerCube;
+    String ID;
+    //
     
     void Start ()
     {
+        
         m_Driver = NetworkDriver.Create();
         m_Connection = default(NetworkConnection);
         var endpoint = NetworkEndPoint.Parse(serverIP,serverPort);
         m_Connection = m_Driver.Connect(endpoint);
+        ID = UnityEngine.Random.value.ToString();
     }
     
     void SendToServer(string message){
@@ -30,12 +34,15 @@ public class NetworkClient : MonoBehaviour
     }
 
     void OnConnect(){
-        Debug.Log("We are now connected to the server");
+        Debug.Log("Test");
+        PlayerIntoMsg p = new PlayerIntoMsg();
+        GameObject playerIfmiont = Instantiate(playerCube, new Vector3(-5.0f,0.0f,0.0f),Quaternion.identity);
 
-        //// Example to send a handshake message:
-        // HandshakeMsg m = new HandshakeMsg();
-        // m.player.id = m_Connection.InternalId.ToString();
-        // SendToServer(JsonUtility.ToJson(m));
+        p.Point = transform.position;
+        p.UnityID = ID;
+
+        // Example to send a handshake message:
+        SendToServer(JsonUtility.ToJson(p));
     }
 
     void OnData(DataStreamReader stream){
@@ -56,6 +63,15 @@ public class NetworkClient : MonoBehaviour
             case Commands.SERVER_UPDATE:
             ServerUpdateMsg suMsg = JsonUtility.FromJson<ServerUpdateMsg>(recMsg);
             Debug.Log("Server update message received!");
+            break;
+            case Commands.PLAYER_INTO:
+            PlayerIntoMsg PMsg = JsonUtility.FromJson<PlayerIntoMsg>(recMsg);
+            Debug.Log("Player into message received!");
+            if (ID != PMsg.UnityID)
+            {
+                Instantiate(playerCube, new Vector3(5.0f, 0.0f,0.0f),Quaternion.identity);
+
+            }
             break;
             default:
             Debug.Log("Unrecognized message received!");
