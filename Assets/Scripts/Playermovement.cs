@@ -4,10 +4,7 @@ using UnityEngine;
 
 public class Playermovement : MonoBehaviour
 {
-    [SerializeField]
-    private float speed = 10;
-
-    public Vector3 position = new Vector3(0, 0, 0);
+    public float PlayerMove = 5;
     // Start is called before the first frame update
     void Start()
     {
@@ -17,23 +14,9 @@ public class Playermovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        this.transform.position = position;
-        if (Input.GetKey(KeyCode.A))
-        {
-            position -= new Vector3(speed * Time.deltaTime, 0, 0);
-        }
-        if (Input.GetKey(KeyCode.D))
-        {
-            position += new Vector3(speed * Time.deltaTime, 0, 0);
-        }
-        if (Input.GetKey(KeyCode.W))
-        {
-            position += new Vector3(0, speed * Time.deltaTime, 0);
-        }
-        if (Input.GetKey(KeyCode.S))
-        {
-            position -= new Vector3(0, speed * Time.deltaTime, 0);
-        }
+        Vector3 movementVector = new Vector3(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
+        movementVector *= Time.deltaTime * PlayerMove;
 
+        transform.Translate(movementVector);
     }
 }

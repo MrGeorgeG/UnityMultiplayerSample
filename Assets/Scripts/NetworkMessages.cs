@@ -4,32 +4,39 @@ using UnityEngine;
 
 namespace NetworkMessages
 {
-    public enum Commands{
+    public enum Commands
+    {
         PLAYER_UPDATE,
         SERVER_UPDATE,
         HANDSHAKE,
         PLAYER_INPUT,
-        PLAYER_INTO
+        PLAYER_INTO,
+        PLAYER_CUBE
     }
 
     [System.Serializable]
-    public class NetworkHeader{
+    public class NetworkHeader
+    {
         public Commands cmd;
     }
 
     [System.Serializable]
-    public class HandshakeMsg:NetworkHeader{
+    public class HandshakeMsg : NetworkHeader
+    {
         public NetworkObjects.NetworkPlayer player;
-        public HandshakeMsg(){      // Constructor
+        public HandshakeMsg()
+        {      // Constructor
             cmd = Commands.HANDSHAKE;
             player = new NetworkObjects.NetworkPlayer();
         }
     }
-    
+
     [System.Serializable]
-    public class PlayerUpdateMsg:NetworkHeader{
+    public class PlayerUpdateMsg : NetworkHeader
+    {
         public NetworkObjects.NetworkPlayer player;
-        public PlayerUpdateMsg(){      // Constructor
+        public PlayerUpdateMsg()
+        {      // Constructor
             cmd = Commands.PLAYER_UPDATE;
             player = new NetworkObjects.NetworkPlayer();
         }
@@ -68,21 +75,36 @@ namespace NetworkMessages
         }
     }
 
-} 
+    [System.Serializable]
+    public class PlayerCubeMsg : NetworkHeader
+    {
+        public Vector3 Point;
+        public string UnityID;
+        public PlayerCubeMsg()
+        {      // Constructor
+            cmd = Commands.PLAYER_CUBE;
+
+        }
+    }
+
+}
 
 namespace NetworkObjects
 {
     [System.Serializable]
-    public class NetworkObject{
+    public class NetworkObject
+    {
         public string id;
     }
     [System.Serializable]
-    public class NetworkPlayer : NetworkObject{
+    public class NetworkPlayer : NetworkObject
+    {
         public Color cubeColor;
         public Vector3 cubPos;
 
 
-        public NetworkPlayer(){
+        public NetworkPlayer()
+        {
             cubeColor = new Color();
         }
     }

@@ -14,7 +14,7 @@ public class NetworkServer : MonoBehaviour
     private NativeList<NetworkConnection> m_Connections;
     public List<PlayerIntoMsg> playerMsg;
 
-    void Start ()
+    void Start()
     {
         playerMsg = new List<PlayerIntoMsg>();
         m_Driver = NetworkDriver.Create();
@@ -28,9 +28,10 @@ public class NetworkServer : MonoBehaviour
         m_Connections = new NativeList<NetworkConnection>(16, Allocator.Persistent);
     }
 
-    void SendToClient(string message, NetworkConnection c){
+    void SendToClient(string message, NetworkConnection c)
+    {
         var writer = m_Driver.BeginSend(NetworkPipeline.Null, c);
-        NativeArray<byte> bytes = new NativeArray<byte>(Encoding.ASCII.GetBytes(message),Allocator.Temp);
+        NativeArray<byte> bytes = new NativeArray<byte>(Encoding.ASCII.GetBytes(message), Allocator.Temp);
         writer.WriteBytes(bytes);
         m_Driver.EndSend(writer);
     }
@@ -40,7 +41,8 @@ public class NetworkServer : MonoBehaviour
         m_Connections.Dispose();
     }
 
-    void OnConnect(NetworkConnection c){
+    void OnConnect(NetworkConnection c)
+    {
         foreach (PlayerIntoMsg Np in playerMsg)
         {
             SendToClient(JsonUtility.ToJson(Np), c);
@@ -53,47 +55,58 @@ public class NetworkServer : MonoBehaviour
         // SendToClient(JsonUtility.ToJson(m),c);        
     }
 
-    void OnData(DataStreamReader stream, int i){
-        NativeArray<byte> bytes = new NativeArray<byte>(stream.Length,Allocator.Temp);
+    void OnData(DataStreamReader stream, int i)
+    {
+        NativeArray<byte> bytes = new NativeArray<byte>(stream.Length, Allocator.Temp);
         stream.ReadBytes(bytes);
         string recMsg = Encoding.ASCII.GetString(bytes.ToArray());
         NetworkHeader header = JsonUtility.FromJson<NetworkHeader>(recMsg);
 
-        switch(header.cmd){
+        switch (header.cmd)
+        {
             case Commands.HANDSHAKE:
-            HandshakeMsg hsMsg = JsonUtility.FromJson<HandshakeMsg>(recMsg);
-            Debug.Log("Handshake message received!");
-            break;
+                HandshakeMsg hsMsg = JsonUtility.FromJson<HandshakeMsg>(recMsg);
+                Debug.Log("Handshake message received!");
+                break;
             case Commands.PLAYER_UPDATE:
-            PlayerUpdateMsg puMsg = JsonUtility.FromJson<PlayerUpdateMsg>(recMsg);
-            Debug.Log("Player update message received!");
-            break;
+                PlayerUpdateMsg puMsg = JsonUtility.FromJson<PlayerUpdateMsg>(recMsg);
+                Debug.Log("Player update message received!");
+                break;
             case Commands.SERVER_UPDATE:
-            ServerUpdateMsg suMsg = JsonUtility.FromJson<ServerUpdateMsg>(recMsg);
-            Debug.Log("Server update message received!");
-            break;
+                ServerUpdateMsg suMsg = JsonUtility.FromJson<ServerUpdateMsg>(recMsg);
+                Debug.Log("Server update message received!");
+                break;
             case Commands.PLAYER_INTO:
-            PlayerIntoMsg PMsg = JsonUtility.FromJson<PlayerIntoMsg>(recMsg);
-            Debug.Log("Player into message received!");
-            playerMsg.Add(PMsg);
-            foreach(NetworkConnection P in m_Connections)
-            {
-                SendToClient(JsonUtility.ToJson(PMsg), P);
-            }
-            break;
-
+                PlayerIntoMsg pMsg = JsonUtility.FromJson<PlayerIntoMsg>(recMsg);
+                Debug.Log("Player into message received!");
+                playerMsg.Add(pMsg);
+                foreach (NetworkConnection P in m_Connections)
+                {
+                    SendToClient(JsonUtility.ToJson(pMsg), P);
+                }
+                break;
+            case Commands.PLAYER_CUBE:
+                PlayerCubeMsg pcMsg = JsonUtility.FromJson<PlayerCubeMsg>(recMsg);
+                Debug.Log("Player Cube message received!");
+                foreach (NetworkConnection P in m_Connections)
+                {
+                    SendToClient(JsonUtility.ToJson(pcMsg), P);
+                    Debug.Log("Server cube");
+                }
+                break;
             default:
-            Debug.Log("SERVER ERROR: Unrecognized message received!");
-            break;
+                Debug.Log("SERVER ERROR: Unrecognized message received!");
+                break;
         }
     }
 
-    void OnDisconnect(int i){
+    void OnDisconnect(int i)
+    {
         Debug.Log("Client disconnected from server");
         m_Connections[i] = default(NetworkConnection);
     }
 
-    void Update ()
+    void Update()
     {
         m_Driver.ScheduleUpdate().Complete();
 
@@ -110,8 +123,8 @@ public class NetworkServer : MonoBehaviour
 
         // AcceptNewConnections
         NetworkConnection c = m_Driver.Accept();
-        while (c  != default(NetworkConnection))
-        {            
+        while (c != default(NetworkConnection))
+        {
             OnConnect(c);
 
             // Check if there is another new connection
@@ -124,7 +137,7 @@ public class NetworkServer : MonoBehaviour
         for (int i = 0; i < m_Connections.Length; i++)
         {
             Assert.IsTrue(m_Connections[i].IsCreated);
-            
+
             NetworkEvent.Type cmd;
             cmd = m_Driver.PopEventForConnection(m_Connections[i], out stream);
             while (cmd != NetworkEvent.Type.Empty)
